@@ -103,22 +103,12 @@ class App extends Component {
     }
   }
 
-  markAsRead = (emails) => {
-    return emails.map(email => {
+  markAsRead = () => {
+    return this.copyEmails().map(email => {
       const result = { ...email }
       if(email.hasOwnProperty('selected')) email.read = true
       return email
     })
-
-    // ///
-    //
-    // if(!this.state.emails.some(email => email.selected)) return null
-    //
-    // const copied = this.copyEmails().map(email => {
-    //   if(email.hasOwnProperty('selected')) email.read = true
-    //   return email
-    // })
-    // this.setState({ ...this.state, emails: copied })
   }
 
   markAsUnread = () => {

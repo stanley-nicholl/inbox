@@ -8,6 +8,7 @@ const Message = ({email, clickBox, clickStar}) => {
         namesForEmail += ` selected`
       }
       email.read ? namesForEmail += ` read` : namesForEmail += ` unread`
+      console.log(email, namesForEmail);
       return namesForEmail
     }
 
