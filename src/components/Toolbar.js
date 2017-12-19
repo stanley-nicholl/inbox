@@ -42,11 +42,11 @@ const Toolbar = ({
           <i className={toolBarIcon(emails)} onClick={ e => bulkCheck(e)}></i>
         </button>
 
-        <button className="btn btn-default" onClick={ e => markAsRead()}>
+        <button className="btn btn-default" onClick={ e => startTransformation(markAsRead)}>
           Mark As Read
         </button>
 
-        <button className="btn btn-default" onClick={ e => markAsUnread()}>
+        <button className="btn btn-default" onClick={ e => this.startTransformation(markAsUnread)}>
           Mark As Unread
         </button>
 

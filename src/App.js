@@ -14,6 +14,7 @@ class App extends Component {
         "subject": "You can't input the protocol without calculating the mobile RSS protocol!",
         "read": false,
         "starred": true,
+        "selected": false,
         "labels": ["dev", "personal"]
       },
       {
@@ -21,7 +22,7 @@ class App extends Component {
         "subject": "connecting the system won't do anything, we need to input the mobile AI panel!",
         "read": false,
         "starred": false,
-        "selected": true,
+        "selected": false,
         "labels": []
       },
       {
@@ -29,6 +30,7 @@ class App extends Component {
         "subject": "Use the 1080p HTTP feed, then you can parse the cross-platform hard drive!",
         "read": false,
         "starred": true,
+        "selected": false,
         "labels": ["dev"]
       },
       {
@@ -36,7 +38,7 @@ class App extends Component {
         "subject": "We need to program the primary TCP hard drive!",
         "read": true,
         "starred": false,
-        "selected": true,
+        "selected": false,
         "labels": []
       },
       {
@@ -44,6 +46,7 @@ class App extends Component {
         "subject": "If we override the interface, we can get to the HTTP feed through the virtual EXE interface!",
         "read": false,
         "starred": false,
+        "selected": false,
         "labels": ["personal"]
       },
       {
@@ -51,6 +54,7 @@ class App extends Component {
         "subject": "We need to back up the wireless GB driver!",
         "read": true,
         "starred": true,
+        "selected": false,
         "labels": []
       },
       {
@@ -58,6 +62,7 @@ class App extends Component {
         "subject": "We need to index the mobile PCI bus!",
         "read": true,
         "starred": false,
+        "selected": false,
         "labels": ["dev", "personal"]
       },
       {
@@ -65,13 +70,13 @@ class App extends Component {
         "subject": "If we connect the sensor, we can get to the HDD port through the redundant IB firewall!",
         "read": true,
         "starred": true,
+        "selected": false,
         "labels": []
       }
     ],
     toolbarChecked: 'some'
     }
 
-    this.bulkCheck = this.bulkCheck.bind(this)
     this.markAsRead = this.startTransformation.bind(this, this.markAsRead)
     this.markAsUnread = this.startTransformation.bind(this, this.markAsUnread)
   }
@@ -84,13 +89,14 @@ class App extends Component {
   startTransformation = (cb) => {
     if(!this.state.emails.some(email => email.selected)) return null
     const result = cb(this.state.emails)
+    console.log(result);
     this.setState({ ...this.state, emails: result })
   }
 
   bulkCheck = (e) => {
     if(this.state.toolbarChecked === 'every'){
       const copied = this.copyEmails().map(email => {
-        email.selected = false;
+        email.selected = false
         return email
       })
       this.setState({emails: copied, toolbarChecked: 'none'})
@@ -104,16 +110,19 @@ class App extends Component {
   }
 
   markAsRead = () => {
+    console.log('read');
     return this.copyEmails().map(email => {
       const result = { ...email }
-      if(email.hasOwnProperty('selected')) email.read = true
+      if(email.read === false) email.read = true
       return email
     })
   }
 
   markAsUnread = () => {
+    console.log('unread');
     return this.copyEmails().map(email => {
-      if(email.hasOwnProperty('selected')) email.read = false
+      const result = { ...email }
+      if(email.read === false) email.read = false
       return email
     })
   }
@@ -122,7 +131,7 @@ class App extends Component {
     if(!this.state.emails.some(email => email.selected)) return null
 
     const idsToDelete = this.state.emails.filter(email=> {
-      return email.hasOwnProperty('selected')
+      if(email.hasOwnProperty('selected') && email.selected === true) return email
     }).map(email=> email.id)
 
     const copied = this.copyEmails().filter(email=> !idsToDelete.includes(email.id))
