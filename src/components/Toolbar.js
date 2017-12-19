@@ -10,7 +10,8 @@ const Toolbar = ({
   markAsUnread,
   applyLabel,
   removeLabel,
-  deleteMessages
+  deleteMessages,
+  startTransformation
 }) => {
 
   const toolBarIcon = (emails) =>{

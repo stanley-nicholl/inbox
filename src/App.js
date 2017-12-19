@@ -72,103 +72,125 @@ class App extends Component {
     }
 
     this.bulkCheck = this.bulkCheck.bind(this)
+    this.markAsRead = this.startTransformation.bind(this, this.markAsRead)
+    this.markAsUnread = this.startTransformation.bind(this, this.markAsUnread)
   }
 
+  copyEmails = () => {
+    const copied = [...this.state.emails]
+    return copied
+  }
+
+  startTransformation = (cb) => {
+    if(!this.state.emails.some(email => email.selected)) return null
+    const result = cb(this.state.emails)
+    this.setState({ ...this.state, emails: result })
+  }
 
   bulkCheck = (e) => {
     if(this.state.toolbarChecked === 'every'){
-      const copyEmails = this.state.emails.map(email => {
-        email.selected=false;
+      const copied = this.copyEmails().map(email => {
+        email.selected = false;
         return email
       })
-      this.setState({emails: copyEmails, toolbarChecked: 'none'})
+      this.setState({emails: copied, toolbarChecked: 'none'})
     }else{
-      const copyEmails = this.state.emails.map(email => {
+      const copied = this.copyEmails().map(email => {
         email.selected = true
         return email
       })
-      this.setState({emails: copyEmails, toolbarChecked: 'every'})
+      this.setState({emails: copied, toolbarChecked: 'every'})
     }
   }
 
-  markAsRead = () => {
-    if(!this.state.emails.some(email => email.selected)) return null
-    const copyEmails = this.state.emails.map(email => {
+  markAsRead = (emails) => {
+    return emails.map(email => {
+      const result = { ...email }
       if(email.hasOwnProperty('selected')) email.read = true
       return email
     })
-    this.setState(this.state.emails = copyEmails)
+
+    // ///
+    //
+    // if(!this.state.emails.some(email => email.selected)) return null
+    //
+    // const copied = this.copyEmails().map(email => {
+    //   if(email.hasOwnProperty('selected')) email.read = true
+    //   return email
+    // })
+    // this.setState({ ...this.state, emails: copied })
   }
 
   markAsUnread = () => {
-    if(!this.state.emails.some(email => email.selected)) return null
-    const copyEmails = this.state.emails.map(email => {
+    return this.copyEmails().map(email => {
       if(email.hasOwnProperty('selected')) email.read = false
       return email
     })
-    this.setState(this.state.emails = copyEmails)
   }
 
   deleteMessages = (e) => {
     if(!this.state.emails.some(email => email.selected)) return null
-    const emailsToDelete = this.state.emails.filter(email =>        email.hasOwnProperty('selected')
-    )
 
-    const deleteIds = emailsToDelete.map(email => email.id)
-    const copyEmails = [...this.state.emails]
-    const deleteIndexes = []
-    deleteIds.forEach(id => {
-      copyEmails.forEach((email, i) => {
-        if(id === email.id) copyEmails.splice(i, 1)
-      })
-    })
-    this.setState(this.state.emails = copyEmails)
+    const idsToDelete = this.state.emails.filter(email=> {
+      return email.hasOwnProperty('selected')
+    }).map(email=> email.id)
+
+    const copied = this.copyEmails().filter(email=> !idsToDelete.includes(email.id))
+
+    this.setState({ ...this.state, emails: copied })
   }
 
 
 
   applyLabel = (e) => {
-    console.log('test');
     if(!this.state.emails.some(email => email.selected)) return null
+
     const newLabel = e.target.value
-    const copyEmails = this.state.emails.map(email => {
+    const copied = this.copyEmails().map(email => {
       if(email.hasOwnProperty('selected') && !email.labels.includes(newLabel) && newLabel !== 'Apply label') email.labels.push(e.target.value)
       return email
     })
+
     e.target.selectedIndex = 0
-    this.setState(this.state.emails = copyEmails)
+    this.setState({ ...this.state, emails: copied })
   }
 
   removeLabel = (e) => {
     if(!this.state.emails.some(email => email.selected)) return null
+
     const removeLabel = e.target.value
-    const copyEmails = this.state.emails.map(email => {
+    const copied = this.copyEmails().map(email => {
       if(email.hasOwnProperty('selected') && email.labels.includes(removeLabel) && removeLabel !== 'Apply label') {
         const index = email.labels.indexOf(removeLabel)
         email.labels.splice(index, 1)
       }
       return email
     })
+
     e.target.selectedIndex = 0
-    this.setState(this.state.emails = copyEmails)
+    this.setState({ ...this.state, emails: copied })
   }
 
   resolveStar = (e) => {
     const targetId = e.target.id.split('-')[1]
-    const copyEmails = this.state.emails.map(email => {
+
+    const copied = this.copyEmails().map(email => {
       if(email.id === parseInt(targetId)) email.starred = email.starred ? false : true
       return email
     })
-    this.setState(this.state.emails = copyEmails)
+
+    this.setState({ ...this.state, emails: copied })
   }
 
   resolveCheck = (e) => {
     const targetId = e.target.id.split('-')[1]
-    const copyEmails = this.state.emails.map(email => {
+
+    const copied = this.copyEmails().map(email => {
       if(email.id === parseInt(targetId)) email.hasOwnProperty('selected') ? delete email.selected : email.selected = true
       return email
     })
-    this.setState(this.state.emails = copyEmails)
+
+    this.setState({ ...this.state, emails: copied })
   }
 
 
@@ -185,6 +207,7 @@ class App extends Component {
           applyLabel={this.applyLabel}
           removeLabel={this.removeLabel}
           deleteMessages={this.deleteMessages}
+          startTransformation={this.startTransformation}
         />
         <Messages
           emails={this.state.emails}
