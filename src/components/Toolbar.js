@@ -14,12 +14,13 @@ const Toolbar = ({
 }) => {
 
   const toolBarIcon = (emails) =>{
-    if(emails.every(email => email.hasOwnProperty('selected'))) return 'fa fa-check-square-o'
-    if(emails.some(email => email.hasOwnProperty('selected'))) return 'fa fa-minus-square-o'
+    if(emails.every(email => email.seleted === true)) return 'fa fa-check-square-o'
+    if(emails.some(email => email.selected === true)) return 'fa fa-minus-square-o'
     return 'fa fa-square-o'
   }
 
   const unreadCount = (emails) =>{
+    if(emails.length === 0) return null
     let count = 0
     emails.forEach(email => {if(!email.read) count++})
     return count

@@ -8,73 +8,8 @@ import './App.css';
 class App extends Component {
   constructor(){
     super()
-    this.state = {emails:[
-      {
-        "id": 1,
-        "subject": "You can't input the protocol without calculating the mobile RSS protocol!",
-        "read": false,
-        "starred": true,
-        "selected": false,
-        "labels": ["dev", "personal"]
-      },
-      {
-        "id": 2,
-        "subject": "connecting the system won't do anything, we need to input the mobile AI panel!",
-        "read": false,
-        "starred": false,
-        "selected": false,
-        "labels": []
-      },
-      {
-        "id": 3,
-        "subject": "Use the 1080p HTTP feed, then you can parse the cross-platform hard drive!",
-        "read": false,
-        "starred": true,
-        "selected": false,
-        "labels": ["dev"]
-      },
-      {
-        "id": 4,
-        "subject": "We need to program the primary TCP hard drive!",
-        "read": true,
-        "starred": false,
-        "selected": false,
-        "labels": []
-      },
-      {
-        "id": 5,
-        "subject": "If we override the interface, we can get to the HTTP feed through the virtual EXE interface!",
-        "read": false,
-        "starred": false,
-        "selected": false,
-        "labels": ["personal"]
-      },
-      {
-        "id": 6,
-        "subject": "We need to back up the wireless GB driver!",
-        "read": true,
-        "starred": true,
-        "selected": false,
-        "labels": []
-      },
-      {
-        "id": 7,
-        "subject": "We need to index the mobile PCI bus!",
-        "read": true,
-        "starred": false,
-        "selected": false,
-        "labels": ["dev", "personal"]
-      },
-      {
-        "id": 8,
-        "subject": "If we connect the sensor, we can get to the HDD port through the redundant IB firewall!",
-        "read": true,
-        "starred": true,
-        "selected": false,
-        "labels": []
-      }
-    ],
-    toolbarChecked: 'some'
+    this.state = {emails:[],
+    toolbarChecked: ''
     }
 
     this.bulkCheck = this.bulkCheck.bind(this)
@@ -85,18 +20,58 @@ class App extends Component {
   //
   // }
 
+  async componentDidMount() {
+    const emailResponse = await fetch('http://localhost:8082/api/messages')
+    const emailsJson = await emailResponse.json()
+    const emails = emailsJson._embedded.messages
+    let toolbarCheck
+    if(emails.every(email => email.selected === true)){toolbarCheck = 'every'}
+    else if(emails.some(email => email.selected === true)){toolbarCheck = 'some'}
+    else{toolbarCheck = 'none'}
+    this.setState({emails: emails, toolbarChecked: toolbarCheck})
+  }
+
+  async componentWillUpdate(props) {
+    const emailResponse = await fetch('http://localhost:8082/api/messages')
+    const emailsJson = await emailResponse.json()
+    const emails = emailsJson._embedded.messages
+    let toolbarCheck
+    if(emails.every(email => email.selected === true)){toolbarCheck = 'every'}
+    else if(emails.some(email => email.selected === true)){toolbarCheck = 'some'}
+    else{toolbarCheck = 'none'}
+    if(props !== this.props) this.setState({emails: emails, toolbarChecked: toolbarCheck})
+  }
+
+  async updateDb(ids, command, value){
+    const body = {
+      "messageIds": ids,
+      "command": command,
+      value
+      }
+    const response = await fetch('http://localhost:8082/api/messages', {
+      method: 'PATCH',
+      body: JSON.stringify(body),
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      }
+    })
+  }
+
   bulkCheck = (e) => {
     if(this.state.toolbarChecked === 'every'){
       const copied = this.copyEmails().map(email => {
         email.selected=false;
         return email
       })
+
       this.setState({emails: copied, toolbarChecked: 'none'})
     }else{
       const copied = this.copyEmails().map(email => {
         email.selected = true
         return email
       })
+
       this.setState({emails: copied, toolbarChecked: 'every'})
     }
   }
@@ -108,35 +83,33 @@ class App extends Component {
 
   markAsRead = () => {
     if(!this.state.emails.some(email => email.selected)) return null
-    const copied = this.copyEmails().map(email => {
-      if(email.selected === true) email.read = true
-      return email
+    const copied = this.copyEmails().filter(email => {
+      if(email.selected === true) return email
+    }).map(email=> email.id)
+    this.updateDb(copied, 'read', {"read": true})
+    .then(result => {
+      this.componentWillUpdate()
     })
-    this.setState({ ...this.state, emails: copied })
   }
 
   markAsUnread = () => {
     if(!this.state.emails.some(email => email.selected)) return null
-    const copied = this.copyEmails().map(email => {
-      if(email.selected === true) email.read = false
-      return email
-    })
-    this.setState({...this.state, emails: copied})
+    const copied = this.copyEmails().filter(email => {
+      if(email.selected === true) return email
+    }).map(email => email.id)
+    this.updateDb(copied, 'read', {"read": false})
+      .then(result => {
+        this.componentWillUpdate()
+      })
   }
 
   deleteMessages = (e) => {
     if(!this.state.emails.some(email => email.selected)) return null
-    const copied = this.copyEmails().filter(email => email.selected != true)
-
-    // const deleteIds = emailsToDelete.map(email => email.id)
-    // copied = this.copyEmails()
-    // const deleteIndexes = []
-    // deleteIds.forEach(id => {
-    //   copyEmails.forEach((email, i) => {
-    //     if(id === email.id) copyEmails.splice(i, 1)
-    //   })
-    // })
-    this.setState({...this.state, emails: copied})
+    const copied = this.copyEmails().filter(email => email.selected != true).map(email => email.id)
+    this.updateDb(copied, 'delete')
+      .then(result => {
+        this.componentWillUpdate()
+      })
   }
 
 
@@ -144,44 +117,48 @@ class App extends Component {
   applyLabel = (e) => {
     if(!this.state.emails.some(email => email.selected)) return null
     const newLabel = e.target.value
-    const copied = this.copyEmails().map(email => {
-      if(email.selected === true && !email.labels.includes(newLabel) && newLabel !== 'Apply label') email.labels.push(e.target.value)
+    const copied = this.copyEmails().filter(email => {
+      if(email.selected === true && !email.labels.includes(newLabel) && newLabel !== 'Apply label')
       return email
-    })
+    }).map(email=> email.id)
+    console.log(copied);
     e.target.selectedIndex = 0
-    this.setState({...this.state, emails: copied})
+    this.updateDb(copied, 'addLabel', {"label": newLabel})
+      .then(result => {
+        this.componentWillUpdate()
+      })
   }
 
   removeLabel = (e) => {
     if(!this.state.emails.some(email => email.selected)) return null
     const removeLabel = e.target.value
-    const copied = this.copyEmails().map(email => {
-      if(email.selected === true && email.labels.includes(removeLabel) && removeLabel !== 'Apply label') {
-        const index = email.labels.indexOf(removeLabel)
-        email.labels.splice(index, 1)
-      }
-      return email
-    })
+    const copied = this.copyEmails().filter(email => {
+      if(email.selected === true && email.labels.includes(removeLabel) && removeLabel !== 'Apply label') return email
+    }).map(email => email.id)
     e.target.selectedIndex = 0
-    this.setState({...this.state, emails: copied})
+    this.updateDb(copied, 'removeLabel', {"label": removeLabel})
+      .then(result => {
+        this.componentWillUpdate()
+      })
   }
 
   resolveStar = (e) => {
-    const targetId = e.target.id.split('-')[1]
-    const copied = this.copyEmails().map(email => {
-      if(email.id === parseInt(targetId)) email.starred = email.starred ? false : true
-      return email
-    })
-    this.setState({...this.state, emails: copied})
+    const targetId = [...e.target.id.split('-')[1]]
+    const value = e.target.className === 'star fa fa-star' ? false : true
+    this.updateDb(targetId, 'star', {"star": value})
+      .then(result => {
+        this.componentWillUpdate()
+      })
   }
 
   resolveCheck = (e) => {
-    const targetId = e.target.id.split('-')[1]
-    const copied = this.copyEmails().map(email => {
-      if(email.id === parseInt(targetId)) email.selected ? email.selected = false : email.selected = true
-      return email
-    })
-    this.setState({...this.state, emails: copied})
+    const targetId = [...e.target.id.split('-')[1]]
+    const copied = this.copyEmails().filter(email => email.id === targetId)
+    const value = copied.selected ? false : true
+    this.updateDb(targetId, 'star', {"selected": value})
+      .then(result => {
+        this.componentWillUpdate()
+      })
   }
 
 
