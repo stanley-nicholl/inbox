@@ -20,7 +20,7 @@ const Message = ({email, clickBox, clickStar}) => {
       <div className="col-xs-1">
         <div className="row">
           <div className="col-xs-2">
-            <input type="checkbox" defaultChecked={email.selected} id={"check-" + email.id} onChange={ e => clickBox(e)}/>
+            <input type="checkbox" checked={email.selected} id={"check-" + email.id} onChange={ e => clickBox(e)}/>
           </div>
           <div className="col-xs-2">
             <i className={email.starred ? "star fa fa-star": "star fa fa-star-o"} id={"star-" + email.id} onClick={ e => clickStar(e)}></i>
