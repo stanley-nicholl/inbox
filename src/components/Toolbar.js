@@ -10,17 +10,19 @@ const Toolbar = ({
   markAsUnread,
   applyLabel,
   removeLabel,
-  deleteMessages
+  deleteMessages,
+  compose,
+  changeCompose
 }) => {
 
-  const toolBarIcon = (emails) =>{
-    if(emails.every(email => email.seleted === true)) return 'fa fa-check-square-o'
-    if(emails.some(email => email.selected === true)) return 'fa fa-minus-square-o'
+  const toolBarIcon = (toolbarChecked) =>{
+    if(toolbarChecked === 'every') return 'fa fa-check-square-o'
+    if(toolbarChecked === 'some') return 'fa fa-minus-square-o'
     return 'fa fa-square-o'
   }
 
   const unreadCount = (emails) =>{
-    if(emails.length === 0) return null
+    if(!emails) return null
     let count = 0
     emails.forEach(email => {if(!email.read) count++})
     return count
@@ -28,6 +30,11 @@ const Toolbar = ({
 
   const Label = (label, i) =>{
     return <option key={i} value={label}>{label}</option>
+  }
+
+  const makeComposeVisible = () =>{
+    const value = !compose ? true : false
+    changeCompose(value)
   }
 
   return (
@@ -38,8 +45,12 @@ const Toolbar = ({
           unread messages
         </p>
 
+        <a class="btn btn-danger">
+          <i class="fa fa-plus" onClick={ e => makeComposeVisible()}></i>
+        </a>
+
         <button className="btn btn-default">
-          <i className={toolBarIcon(emails)} onClick={ e => bulkCheck(e)}></i>
+          <i className={toolBarIcon(toolbarChecked)} onClick={ e => bulkCheck(e)}></i>
         </button>
 
         <button className="btn btn-default" onClick={ e => markAsRead()}>
